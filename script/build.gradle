@@ -38,3 +38,67 @@ configurations.all {
     }
 
 }
+
+configure(subprojects.findAll()){
+apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'jacoco'
+    apply plugin: 'pmd'
+    apply plugin: 'maven-publish'
+    apply plugin: 'ca.cutterslade.analyze'
+
+    test{
+        afterTest{ desc,result ->
+            if(result.getResultType().equals(junit.framework.TestResult.FAILURE)){
+                println 'Failed test result'
+                println desc.getClassname()
+                result.getException().printStackTrace()
+            }
+        }
+    }
+    pmd {
+        ignoreFailures=false
+        sourceSets=[sourceSets.main, sourceSets.test]
+        toolVersion="6.10.0"
+        ruleSetConfig=resources.text.fromFile("${project.rootDir}/config/pmd/rule-set.xml")
+        ruleSets=[]
+        consoleOutput=true
+
+    }
+    analyzeClassesDependencies{
+        justWarn=true
+    }
+    analyzeTestClassesDependencies{
+        justWarn=true
+    }
+
+    tasks.analyzeClassesDependencies.enabled=false
+    tasks.analyzeTestClassesDependencies.enabled=false
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies{
+        testCompile "junit:junit:${versions.junit}"
+    }
+    task sourcesJar(type:Jar){
+        from sourceSets.main.allJava
+        classifier='sources'
+    }
+    task copyPom(type:Copy){
+        dependsOn 'generatePomFileForMavenPublication'
+        from file("$buildDir/publications/maven/pom-default.xml")
+        into file("$buildDir/libs")
+        rename  'pom-default.xml',"${module.name}.pom"
+    }
+    build.dependsOn sourcesJar,copyPom
+
+    publishing {
+        publications{
+            maven(MavenPublication){
+                group="$group"
+                from components.java
+            }
+        }
+    }
+}
