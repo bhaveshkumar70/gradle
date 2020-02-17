@@ -1,0 +1,16 @@
+
+
+ext.versions=[
+
+       junit    :'4.13',
+       version :'1.0-SNAPSHOT',
+       cutterslade:'1.4.0-SNAPSHOT'
+
+
+]
+configurations.all {
+    resolutionStrategy {
+        force "junit:junit:${versions.junit}"
+
+    }
+}
