@@ -1,0 +1,6 @@
+rootProject.name = 'script'
+
+include 'services:candidate-sourcing'
+include 'services:interview-scheduling'
+
+
